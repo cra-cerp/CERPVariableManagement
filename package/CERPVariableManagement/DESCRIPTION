@@ -1,0 +1,27 @@
+Package: CERPVariableManagement
+Title: Creating Excel files for CERP Variable Management
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Evelyn",
+           family = "Yarzebinski",
+           role = c("aut", "cre"),
+           email = "evelyn@cra.org")
+Description: This package creates excel files for variable management in the data cleaning process, specifically variable workbooks and codebook workbooks.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
+Imports: 
+    dplyr,
+    haven,
+    magrittr,
+    openxlsx,
+    rlang,
+    sjlabelled,
+    stringr,
+    tidyr,
+    tidyselect,
+    utils
+Depends: 
+    R (>= 2.10)
