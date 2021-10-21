@@ -16,6 +16,7 @@ To generate variable workbooks, you will need the following:
 
 Refer to the `scripts` folder for documentation of how to make a variable workbook.
 
+
 To generate codebook workbooks, you will need the following:
 * completed variable workbook
 * downloaded variable dictionary from Qualtrics
