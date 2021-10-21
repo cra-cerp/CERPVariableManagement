@@ -2,3 +2,4 @@
 .DS_Store
 package/CERPVariableManagement/.Rbuildignore
 package/CERPVariableManagement/.Rhistory
+scripts/.Rapp.history
