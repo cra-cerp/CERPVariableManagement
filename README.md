@@ -18,6 +18,6 @@ Refer to the `scripts` folder for documentation of how to make a variable workbo
 
 ## To generate codebook workbooks, you will need the following:
 * completed variable workbook
-* downloaded variable dictionary from Qualtrics
+* downloaded data dictionary from SPSS
 
 Refer to the `scripts` folder for documentation of how to make a codebook workbook.
