@@ -21,3 +21,8 @@ Refer to the `scripts` folder for documentation of how to make a variable workbo
 * downloaded data dictionary from SPSS
 
 Refer to the `scripts` folder for documentation of how to make a codebook workbook.
+
+## To generate codebook syntax, you will need the following:
+* completed codebook workbook
+
+Refer to the `scripts` folder for documentation of how to make the codebook syntax.

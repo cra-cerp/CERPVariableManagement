@@ -32,37 +32,16 @@
 #' @importFrom dplyr everything
 write_codebook_workbook <- function(variableWorkbookFilename,variableWorkbookTabName,variableWorkbookFileLocation,dictionaryFilename,dictionaryFileLocation,codebookFilename,codebookFileLocation) {
 
-  # ### confirm file extensions before loading ----
-  # # # confirm sav file has sav extension
-  # # if(stringr::str_sub({{savName}}, -3) != "sav")
-  # #   stop("Check specified .sav file; file extension is not '.sav'.")
-  #
-  # # confirm variableWorkbookFilename file has .xlsx extension
-  # if(stringr::str_sub({{variableWorkbookFilename}}, -4) != "xlsx")
-  #   stop("Check name of variable management file; must end with '.xlsx'.")
-  #
-  # # confirm output file has .xlsx extension
-  # if(stringr::str_sub({{codebookFilename}}, -4) != "xlsx")
-  #   stop("Check name of output file; must end with '.xlsx'.")
+  ### confirm file extensions before loading ----
 
+  # confirm variableWorkbookFilename file has .xlsx extension
+  if(stringr::str_sub({{variableWorkbookFilename}}, -4) != "xlsx")
+    stop("Check name of variable management file; must end with '.xlsx'.")
 
-  ########################################
-  # set environment - update everything in here each time
+  # confirm output file has .xlsx extension
+  if(stringr::str_sub({{codebookFilename}}, -4) != "xlsx")
+    stop("Check name of output file; must end with '.xlsx'.")
 
-  ## add the information for the dictionary exported from SPSS
-  #codebook_prelim_name = "GCIDEALS2021_post_codebook" # Must be csv. Add the name only, not the file extension
-  #codebook_wd = "~/Dropbox (Computing Research)/CERP_Evaluation/CRA-W/IDEALSGradCohort/2021/"
-
-  ## add the information for the variable management template completed for this dataset
-  #varManagement_final = "GradCohortIDEALS_2021_post_variableManagement"
-  #varManagement_wbSheet = "varManagement" # this likely will not need to change
-  #varManagement_wd = "~/Dropbox (Computing Research)/CERP_Evaluation/CRA-W/IDEALSGradCohort/2021/"
-
-  ## set where you want the file to save once the script finishes
-  #outputFile_wd = codebook_wd
-
-  ########################################
-  #codebook_final_name = paste0(dictionaryFilename,"_codebookTemplate.xlsx")
 
   # read in helper files
   ignoreForCodebook = utils::read.csv("~/Dropbox (Computing Research)/CERP_Research/The Data Buddies Project/Data/Data Preparation/GlobalSyntax/RPipeline/varNames_ignoreForCodebook.csv",

@@ -3,3 +3,4 @@
 package/CERPVariableManagement/.Rbuildignore
 package/CERPVariableManagement/.Rhistory
 scripts/.Rapp.history
+.Rproj.user
