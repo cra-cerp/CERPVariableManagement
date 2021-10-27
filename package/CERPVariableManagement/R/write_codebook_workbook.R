@@ -96,7 +96,7 @@ write_codebook_workbook <- function(variableWorkbookFilename,variableWorkbookTab
                   final_label = gsub("Neither Agree nor Disagree","Neither agree nor disagree",(.data$final_label)),
                   final_label = gsub("Somewhat Agree","Somewhat agree",(.data$final_label)),
                   final_label = gsub("Strongly Agree","Strongly agree",(.data$final_label)),
-                  final_label = gsub("Very Much","Very much",(.data$final_label)),
+                  final_label = gsub("Very Much","Very much",(.data$final_label))
     ) %>%
     dplyr::group_by((.data$final_varName)) %>%
     dplyr::mutate(minVal = min((.data$orig_value)),
@@ -109,7 +109,8 @@ write_codebook_workbook <- function(variableWorkbookFilename,variableWorkbookTab
                                                  (.data$varType) == "likert" & minVal != 1 & minVal != (.data$orig_value) & order == min(order)+3~4,
                                                  (.data$varType) == "likert" & minVal != 1 & minVal != (.data$orig_value) & order == min(order)+4~5,
                                           TRUE~as.numeric(final_value))) %>%
-    dplyr::ungroup()
+    dplyr::ungroup() %>%
+    dplyr::select(-`(.data$final_varName)`)
 
 
   # now duplicate all "Selected" entries and update to "Unselected"
