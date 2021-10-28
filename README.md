@@ -3,8 +3,10 @@ For internal CERP use - creating helper workbooks for data cleaning
 
 # How to install
 1. Open a new R session
-2. Run this line of code in R: `devtools::install_github("cra-cerp/package_CERPVariableManagement/package/CERPVariableManagement")`.
-3. If you need to install devtools, type `install.packages("devtools")`.
+2. Run these two lines of code in R:
+`library(devtools)`
+`devtools::install_github("cra-cerp/package_CERPVariableManagement/package/CERPVariableManagement")`.
+3. If you need to install devtools, run: `install.packages("devtools")`.
 
 # What you'll need
 ## To generate variable workbooks, you will need the following:
