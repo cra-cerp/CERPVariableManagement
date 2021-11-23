@@ -1,5 +1,10 @@
 # CERPVariableManagement
-For internal CERP use - creating helper workbooks for data cleaning
+For internal CERP use - creating helper workbooks for data cleaning.
+
+Currently, this package supports the following aspects of the data cleaning process:
+* creating a variable workbook from the raw csv and raw sav file downloaded from Qualtrics, which generates SPSS syntax for renaming and relabelling variables as needed
+* creating a codebook workbook from the finished variable workbook and the raw data dictionary generated in SPSS, which generates well-formed output that is used in another script to create SPSS syntax
+* creating the final codebook syntax from the finished codebook workbook, which generates SPSS syntax for renaming and recoding variables as needed
 
 # How to install
 1. Open a new R session
