@@ -164,7 +164,8 @@ write_codebook_workbook <- function(variableWorkbookFilename,variableWorkbookTab
                                            (.data$varType) == "likert" & minVal != 1~"check value, likely bad",
                                            minVal == 1 & (.data$orig_value) == "No"~"check label, likely bad",
                                            TRUE~notes)) %>%
-    dplyr::mutate
+    dplyr::mutate(final_value = gsub("check qualtrics","",(.data$final_value)),
+                  final_label = gsub("check qualtrics","",(.data$final_label)))
 
   ### create Excel formulas ----
 
