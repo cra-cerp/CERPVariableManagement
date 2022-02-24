@@ -134,7 +134,8 @@ write_codebook_workbook <- function(variableWorkbookFilename,variableWorkbookTab
                      (.data$orig_label_lower),
                      (.data$final_varName),
                      (.data$final_value_fin),
-                     (.data$final_label_fin)))
+                     (.data$final_label_fin),
+                     (.data$needSelectOption)))
 
   ### work with multiselect data ----
 
