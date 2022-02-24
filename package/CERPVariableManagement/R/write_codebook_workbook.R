@@ -16,7 +16,7 @@
 #' @export
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' write_codebook_workbook(
 #' variableWorkbookFilename = "GradCohortIDEALS_2021_pre_variableManagement.xlsx",
 #' variableWorkbookTabName = "varWorkbook",
@@ -43,36 +43,59 @@ write_codebook_workbook <- function(variableWorkbookFilename,variableWorkbookTab
     stop("Check name of output file; must end with '.xlsx'.")
 
 
-  # read in helper files
+  ### read in helper files ----
+
+  # list of variables that are processed later in the data cleaning process script and can be ignored for now
   ignoreForCodebook = utils::read.csv("~/Dropbox (Computing Research)/CERP_Research/The Data Buddies Project/Data/Data Preparation/GlobalSyntax/RPipeline/varNames_ignoreForCodebook.csv",
                                       header = T,
                                       stringsAsFactors = F)
 
-  #read in dictionary as exported from SPSS
+  # list of values that need to be manually updated
+  labelValues = utils::read.csv("~/Dropbox (Computing Research)/CERP_Research/The Data Buddies Project/Data/Data Preparation/GlobalSyntax/RPipeline/labelValues.csv",
+                                header = T,
+                                stringsAsFactors = F)
+
+  # prep labelValues for merging
+  labelValues = labelValues %>%
+    dplyr::select(-orig_label)
+
+  ### read in generated SPSS files ----
+  # read in dictionary exactly as was exported from SPSS
   setwd({{dictionaryFileLocation}})
   dictionary_df = utils::read.csv({{dictionaryFilename}},header=T,stringsAsFactors = F)
 
-  #read in final version of variable management
+  # read in final version of variable management
   setwd({{variableWorkbookFileLocation}})
   varManagement_df = openxlsx::read.xlsx({{variableWorkbookFilename}},{{variableWorkbookTabName}})
   varManagement_df = varManagement_df %>%
     dplyr::select((.data$final_varName),
                   (.data$varType))
 
-  # make preliminary version of codebook columns, including some light relabelling for common issues
+  ### work with codebook ----
+
+  # add row number and rename some columns for clarity
   codebook_prelim = dictionary_df %>%
     dplyr::mutate(order = dplyr::row_number()) %>%
     dplyr::rename(orig_value = (.data$value),
-           orig_label = (.data$Label),
-           final_varName = (.data$variable)) %>%
+                  orig_label = (.data$Label),
+                  final_varName = (.data$variable))
+
+  # merge in variable management file and remove rows that contain the question text
+  codebook_prelim = codebook_prelim %>%
     dplyr::left_join(varManagement_df, by = c("final_varName")) %>%
     dplyr::mutate(keep = dplyr::case_when((.data$orig_value) == -1 & (.data$varType) != "free response"~0,
-                            TRUE~1), #make this more robust!
-           final_value = (.data$orig_value),
-           final_label = dplyr::case_when((.data$varType) == "multiselect"~"Selected",
-                                   TRUE~(.data$orig_label)),
-           needSelectOption = ifelse((.data$final_label) == "Selected",1,0)
-           ) %>%
+                                          TRUE~1)) %>% # TODO make this more robust?
+    dplyr::filter((.data$keep) == 1)
+
+  # create the final values and labels - make all multiselect "Selected" in prep for future step
+  codebook_prelim = codebook_prelim %>%
+    dplyr::mutate(final_value = (.data$orig_value),
+                  final_label = dplyr::case_when((.data$varType) == "multiselect"~"Selected",
+                                                 TRUE~(.data$orig_label)),
+                  needSelectOption = ifelse((.data$final_label) == "Selected",1,0))
+
+  # put columns in preferred order and join notes about which items to ignore at this point in the data cleaning
+  codebook_prelim = codebook_prelim %>%
     dplyr::select(order,
                   (.data$varType),
                   (.data$final_varName),
@@ -80,63 +103,70 @@ write_codebook_workbook <- function(variableWorkbookFilename,variableWorkbookTab
                   (.data$orig_value),
                   (.data$orig_label),
                   everything()) %>%
-    dplyr::left_join(ignoreForCodebook, by = c("final_varName")) %>%
-    dplyr::mutate(update_value = "",
-                  update_label = "",
-                  prelim_recodeVal = "",
-                  prelim_recodeLabel = "") %>%
-    dplyr::filter((.data$keep) == 1) %>%
-    dplyr::select(-c((.data$keep))) %>%
-    dplyr::mutate(final_label = gsub("Very Interested","Very interested",(.data$final_label)),
-                  final_label = gsub("Somewhat Interested","Somewhat interested",(.data$final_label)),
-                  final_label = gsub("Very Disinterested","Very disinterested",(.data$final_label)),
-                  final_label = gsub("Somewhat Disinterested","Somewhat disinterested",(.data$final_label)),
-                  final_label = gsub("Strongly Disagree","Strongly disagree",(.data$final_label)),
-                  final_label = gsub("Somewhat Disagree","Somewhat disagree",(.data$final_label)),
-                  final_label = gsub("Neither Agree nor Disagree","Neither agree nor disagree",(.data$final_label)),
-                  final_label = gsub("Somewhat Agree","Somewhat agree",(.data$final_label)),
-                  final_label = gsub("Strongly Agree","Strongly agree",(.data$final_label)),
-                  final_label = gsub("Very Much","Very much",(.data$final_label))
-    ) %>%
+    dplyr::left_join(ignoreForCodebook, by = c("final_varName"))
+
+  # create metrics for easier skim analysis
+  codebook_prelim = codebook_prelim %>%
     dplyr::group_by((.data$final_varName)) %>%
     dplyr::mutate(minVal = min((.data$orig_value)),
                   maxVal = max((.data$orig_value)),
                   avgVal = round(mean((.data$orig_value)),1),
                   nVal = dplyr::n()) %>%
-    dplyr::mutate(final_value = dplyr::case_when((.data$varType) == "likert" & minVal != 1 & minVal == (.data$orig_value) & order == min(order)~1,
-                                                 (.data$varType) == "likert" & minVal != 1 & minVal != (.data$orig_value) & order == min(order)+1~2,
-                                                 (.data$varType) == "likert" & minVal != 1 & minVal != (.data$orig_value) & order == min(order)+2~3,
-                                                 (.data$varType) == "likert" & minVal != 1 & minVal != (.data$orig_value) & order == min(order)+3~4,
-                                                 (.data$varType) == "likert" & minVal != 1 & minVal != (.data$orig_value) & order == min(order)+4~5,
-                                          TRUE~as.numeric(final_value))) %>%
-    dplyr::ungroup() %>%
-    dplyr::select(-`(.data$final_varName)`)
+    dplyr::ungroup()
 
+  # create blank columns needed for the Excel formulas
+  codebook_prelim = codebook_prelim %>%
+    dplyr::mutate(update_value = "",
+                  update_label = "",
+                  prelim_recodeVal = "",
+                  prelim_recodeLabel = "",
+                  orig_label_lower = trimws(tolower(orig_label)))
 
-  # now duplicate all "Selected" entries and update to "Unselected"
-  # push these "Unselected" values back into the dataset to have a full entry for each multiselect
+  # join the correct label formatting for likert options
+  codebook_prelim = codebook_prelim %>%
+    dplyr::left_join(labelValues, by = c("orig_label_lower","nVal"))
+
+  # remove helper columns and finalize labels and values
+  codebook_prelim = codebook_prelim %>%
+    dplyr::mutate(final_label = ifelse(!is.na(final_label_fin),final_label_fin,final_label),
+                  final_value = ifelse(!is.na(final_value_fin),final_value_fin,final_value)) %>%
+    dplyr::select(-c((.data$keep),
+                     (.data$orig_label_lower),
+                     (.data$final_varName),
+                     (.data$final_value_fin),
+                     (.data$final_label_fin)))
+
+  ### work with multiselect data ----
+
+  # now pull and duplicate all "Selected" entries and update to "Unselected"
+  # push these "Unselected" values back into the dataset to have a full entry for each multiselect (pair of rows with Selected and Unselected)
   unselectedEntries = codebook_prelim %>%
     dplyr::filter((.data$final_label) == "Selected") %>%
     dplyr::mutate(orig_value = 0,
-           final_value = 0,
-           final_label = "Unselected")
+                  final_value = 0,
+                  final_label = "Unselected")
 
-  codebook_final = dplyr::bind_rows(codebook_prelim,
-                                    unselectedEntries)
+  ### create final version of codebook ----
 
+  # bind together the codebook + multiselect entries
+  codebook_final = rbind(codebook_prelim,
+                         unselectedEntries)
+
+  # sort the data, update the order numbering in case of deleted rows, create detailed notes to CERP staff for their review about what the script changed
   codebook_final = codebook_final %>%
-    dplyr::arrange((.data$final_varName)) %>%
+    dplyr::arrange(`(.data$final_varName)`) %>%
     dplyr::mutate(order = dplyr::row_number(),
                   notes = dplyr::case_when(!is.na(notes)~notes,
+                                           (.data$final_value) == "check qualtrics" & (.data$final_label) == "check qualtrics"~"review item in qualtrics survey; data not verifiable",
                                            (.data$orig_value) != final_value & (.data$orig_label) == (.data$final_label)~"updated value via script; confirm value",
                                            (.data$orig_value) == final_value & (.data$orig_label) != (.data$final_label)~"updated label via script; confirm label",
                                            (.data$orig_value) != final_value & (.data$orig_label) != (.data$final_label)~"updated both value and label via script; confirm both",
                                            (.data$varType) == "likert" & minVal != 1~"check value, likely bad",
-                             minVal == 1 & (.data$orig_value) == "No"~"check label, likely bad",
-                             TRUE~notes
-           )
-    )
+                                           minVal == 1 & (.data$orig_value) == "No"~"check label, likely bad",
+                                           TRUE~notes)) %>%
+    dplyr::mutate
 
+  ### create Excel formulas ----
 
   # formula to flag 1/0 if value has updates:
   # if varType is multiselect and final value is 0, flag change. (fix to force syntax into Select update later)
@@ -172,8 +202,7 @@ write_codebook_workbook <- function(variableWorkbookFilename,variableWorkbookTab
                                              seq(2,nrow(codebook_final)+1,1),", ",""
                                              ,prelimLabel_quotes,'))')
 
-  ## testing code
-  #codebook_final$prelim_recodeVal[1]
+  ### finalize Excel workbook ----
 
   # create workbook and set up sheets with data
   wb = openxlsx::createWorkbook()
@@ -182,26 +211,27 @@ write_codebook_workbook <- function(variableWorkbookFilename,variableWorkbookTab
 
   # write all of the above formulas into the final workbook
   openxlsx::writeFormula(wb,
-               sheet = "codebook",
-               x = codebook_final$update_value,
-               startCol = which(colnames(codebook_final) == "update_value"),
-               startRow = 2)
+                         sheet = "codebook",
+                         x = codebook_final$update_value,
+                         startCol = which(colnames(codebook_final) == "update_value"),
+                         startRow = 2)
   openxlsx::writeFormula(wb,
-               sheet = "codebook",
-               x = codebook_final$update_label,
-               startCol = which(colnames(codebook_final) == "update_label"),
-               startRow = 2)
+                         sheet = "codebook",
+                         x = codebook_final$update_label,
+                         startCol = which(colnames(codebook_final) == "update_label"),
+                         startRow = 2)
   openxlsx::writeFormula(wb,
-               sheet = "codebook",
-               x = codebook_final$prelim_recodeVal,
-               startCol = which(colnames(codebook_final) == "prelim_recodeVal"),
-               startRow = 2)
+                         sheet = "codebook",
+                         x = codebook_final$prelim_recodeVal,
+                         startCol = which(colnames(codebook_final) == "prelim_recodeVal"),
+                         startRow = 2)
   openxlsx::writeFormula(wb,
-               sheet = "codebook",
-               x = codebook_final$prelim_recodeLabel,
-               startCol = which(colnames(codebook_final) == "prelim_recodeLabel"),
-               startRow = 2)
-  #make the "original" columns a grey color to signify no changes needed there.
+                         sheet = "codebook",
+                         x = codebook_final$prelim_recodeLabel,
+                         startCol = which(colnames(codebook_final) == "prelim_recodeLabel"),
+                         startRow = 2)
+
+  # make the "original" columns a grey color to signify no changes needed there.
   openxlsx::conditionalFormatting(
     wb,
     sheet = "codebook",
@@ -230,6 +260,8 @@ write_codebook_workbook <- function(variableWorkbookFilename,variableWorkbookTab
     rule = '!="zzzzzz"',
     style = openxlsx::createStyle(bgFill = "#a6a6a6")
   )
+
+  ### write the finalized df and Excel formulas into an Excel spreadsheet ----
 
   # set wd and filename from prior set objects
   openxlsx::saveWorkbook(wb, paste0({{codebookFileLocation}},{{codebookFilename}}), overwrite = TRUE)

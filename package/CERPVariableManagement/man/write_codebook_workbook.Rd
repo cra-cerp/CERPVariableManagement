@@ -39,7 +39,7 @@ Dynamically support CERP variable management
 Make an excel file to dynamically support CERP variable management
 }
 \examples{
-\donttest{
+\dontrun{
 write_codebook_workbook(
 variableWorkbookFilename = "GradCohortIDEALS_2021_pre_variableManagement.xlsx",
 variableWorkbookTabName = "varWorkbook",

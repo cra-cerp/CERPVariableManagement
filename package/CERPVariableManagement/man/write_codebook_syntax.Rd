@@ -27,7 +27,7 @@ Dynamically support CERP variable management
 Make an excel file to dynamically support CERP variable management
 }
 \examples{
-\donttest{
+\dontrun{
 write_codebook_syntax(
 codebookWorkbookFilename = "GradCohortIDEALS_2021_pre_codebookWorkbook.xlsx",
 codebookWorkbookFileLocation = "[path to codebookWorkbook file on Dropbox]",

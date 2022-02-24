@@ -33,7 +33,7 @@ Dynamically support CERP variable management
 Make an excel file to dynamically support CERP variable management
 }
 \examples{
-\donttest{
+\dontrun{
 write_variable_workbook(
 csvName = "PRE.CISE Pre-survey_August 4, 2021_09.46.csv",
 savName = "PRE.CISE Pre-survey_August 4, 2021_09.46.sav",
