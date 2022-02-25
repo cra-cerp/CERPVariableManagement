@@ -155,7 +155,8 @@ write_codebook_workbook <- function(variableWorkbookFilename,variableWorkbookTab
 
   # sort the data, update the order numbering in case of deleted rows, create detailed notes to CERP staff for their review about what the script changed
   codebook_final = codebook_final %>%
-    dplyr::arrange(`(.data$final_varName)`) %>%
+    dplyr::rename(final_varName = .data$`(.data$final_varName)`) %>%
+    dplyr::arrange(final_varName) %>%
     dplyr::mutate(order = dplyr::row_number(),
                   notes = dplyr::case_when(!is.na(notes)~notes,
                                            (.data$final_value) == "check qualtrics" & (.data$final_label) == "check qualtrics"~"review item in qualtrics survey; data not verifiable",
@@ -168,41 +169,74 @@ write_codebook_workbook <- function(variableWorkbookFilename,variableWorkbookTab
     dplyr::mutate(final_value = gsub("check qualtrics","",(.data$final_value)),
                   final_label = gsub("check qualtrics","",(.data$final_label)))
 
+  # set final order
+  codebook_final = codebook_final %>%
+    dplyr::select(order,
+                  varType,
+                  final_varName,
+                  orig_value,
+                  orig_label,
+                  final_value,
+                  final_label,
+                  notes,
+                  update_value,
+                  update_label,
+                  prelim_recodeVal,
+                  prelim_recodeLabel,
+                  minVal,
+                  maxVal,
+                  avgVal,
+                  nVal)
+
   ### create Excel formulas ----
 
-  # formula to flag 1/0 if value has updates:
+  # FORMULA to flag 1/0 if value has updates:
+  # if final_value is blank, make blank
   # if varType is multiselect and final value is 0, flag change. (fix to force syntax into Select update later)
   # if orig value and final value are not exact matches, flag change.
   # otherwise, no change.
-  codebook_final$update_value = paste0("=IF(AND(B",seq(2,nrow(codebook_final)+1,1),"=",'"multiselect",',
+
+  codebook_final$update_value = paste0("=IF(F",seq(2,nrow(codebook_final)+1,1),"=",'"",','"",', #new
+                                       "IF(AND(B",seq(2,nrow(codebook_final)+1,1),"=",'"multiselect",', #new
+    #"=IF(AND(B",seq(2,nrow(codebook_final)+1,1),"=",'"multiselect",',
                                        "F",seq(2,nrow(codebook_final)+1,1),"=0),1,",
                                        "IF(EXACT(D",seq(2,nrow(codebook_final)+1,1),
-                                       ",F",seq(2,nrow(codebook_final)+1 ,1),"),0,1))")
+                                       ",F",seq(2,nrow(codebook_final)+1 ,1),"),0,1)))")
 
-  # formula to flag 1/0 if label has updates
+  # FORMULA to flag 1/0 if label has updates
+  # if final_label is blank, make blank
   # if orig value is -1, no change.
-  # if orig label and final lanbel are not exact matches, flag change.
+  # if orig label and final label are not exact matches, flag change.
   # otherwise, no change.
-  codebook_final$update_label = paste0("=IF(D",seq(2,nrow(codebook_final)+1,1),"=-1,0,",
-                                       "IF(EXACT(E",seq(2,nrow(codebook_final)+1,1),
-                                       ",G",seq(2,nrow(codebook_final)+1 ,1),"),0,1))")
 
-  # formula to write value concat for all rows (later script will take care of final syntax output)
-  # if notes is not "concatenate (orig value = final value)
-  codebook_final$prelim_recodeVal = paste0("=IF(OR(I",seq(2,nrow(codebook_final)+1,1),"=",'"skip for now, convert to string",',
-                                           "I",seq(2,nrow(codebook_final)+1,1),"=",'"skip for now, run through syntax"',"),",'"",',
+  codebook_final$update_label = paste0("=IF(G",seq(2,nrow(codebook_final)+1,1),"=",'"",','"",', #new
+                                       "IF(D",seq(2,nrow(codebook_final)+1,1),"=-1,0,",
+                                       "IF(EXACT(E",seq(2,nrow(codebook_final)+1,1),
+                                       ",G",seq(2,nrow(codebook_final)+1 ,1),"),0,1)))")
+
+  # FORMULA to write value concat for all rows (another script "write_codebook_syntax" will take care of final syntax output)
+  # if notes includes one about "skip...", then blank
+  # if update_value is blank, then blank
+  # otherwise, concatenate "(orig value = final value)"
+
+  codebook_final$prelim_recodeVal = paste0("=IF(OR(H",seq(2,nrow(codebook_final)+1,1),"=",'"skip for now, convert to string",',
+                                           "H",seq(2,nrow(codebook_final)+1,1),"=",'"skip for now, run through syntax"',',',
+                                           "I",seq(2,nrow(codebook_final)+1,1),"=",'"",',"),",'"",',
                                            "CONCATENATE(",'"(",',"D",seq(2,nrow(codebook_final)+1,1),
                                            ',"=",',"F",seq(2,nrow(codebook_final)+1 ,1),',")"',"))")
 
-  # formula to write label concat for all rows (later script will take care of final syntax output)
-  # if notes is 'convert to string', make blank to signal to skip.
-  # otherwise, concatenate final value and final label.
+  # FORMULA to write label concat for all rows (another script "write_codebook_syntax" will take care of final syntax output)
+  # if update_label is blank, then blank
+  # if notes include "skip..." then blank
+  # otherwise, concatenate final value "final label"
+
   prelimLabel_quotes = paste0('" ",','\"\"\"\"',",G",seq(2,nrow(codebook_final)+1,1),',\"\"\"\"')
-  codebook_final$prelim_recodeLabel = paste0("=IF(OR(I",seq(2,nrow(codebook_final)+1,1),"=",'"skip for now, convert to string",',
-                                             "I",seq(2,nrow(codebook_final)+1,1),"=",'"skip for now, run through syntax"',"),",'"",',
+  codebook_final$prelim_recodeLabel = paste0("=IF(OR(H",seq(2,nrow(codebook_final)+1,1),"=",'"skip for now, convert to string",',
+                                             "H",seq(2,nrow(codebook_final)+1,1),"=",'"skip for now, run through syntax"',',',
+                                             "J",seq(2,nrow(codebook_final)+1,1),"=",'"",',"),",'"",',
                                              "CONCATENATE(F",
-                                             seq(2,nrow(codebook_final)+1,1),", ",""
-                                             ,prelimLabel_quotes,'))')
+                                             seq(2,nrow(codebook_final)+1,1),", ","",
+                                             prelimLabel_quotes,'))')
 
   ### finalize Excel workbook ----
 
@@ -234,6 +268,7 @@ write_codebook_workbook <- function(variableWorkbookFilename,variableWorkbookTab
                          startRow = 2)
 
   # make the "original" columns a grey color to signify no changes needed there.
+  # NOTE: This call covers columns 1:N
   openxlsx::conditionalFormatting(
     wb,
     sheet = "codebook",
@@ -248,12 +283,16 @@ write_codebook_workbook <- function(variableWorkbookFilename,variableWorkbookTab
     style = openxlsx::createStyle(bgFill = "#a6a6a6")
   )
 
+  # make the columns with formulas a grey color to signify no changes needed there
+  # NOTE: This call covers columns between N':N''.
+  # Setting it this way leaves a gap of unspecified columns between N:N' (the range *between* the two calls) which is what allows the non-formatting to be set.
+  # If the range of call 1:N overlaps with the range of call N':N'', there will be no non-grey columns.
   openxlsx::conditionalFormatting(
     wb,
     sheet = "codebook",
-    cols = which(colnames(codebook_final) == "needSelectOption" |
+    cols = which(#colnames(codebook_final) == "needSelectOption" |
                    colnames(codebook_final) == "notes" |
-                   colnames(codebook_final) == "update_val" |
+                   colnames(codebook_final) == "update_value" |
                    colnames(codebook_final) == "update_label" |
                    colnames(codebook_final) == "prelim_recodeVal" |
                    colnames(codebook_final) == "prelim_recodeLabel"
