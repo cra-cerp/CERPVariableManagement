@@ -42,7 +42,6 @@ write_codebook_workbook <- function(variableWorkbookFilename,variableWorkbookTab
   if(stringr::str_sub({{codebookFilename}}, -4) != "xlsx")
     stop("Check name of output file; must end with '.xlsx'.")
 
-
   ### read in helper files ----
 
   # list of variables that are processed later in the data cleaning process script and can be ignored for now

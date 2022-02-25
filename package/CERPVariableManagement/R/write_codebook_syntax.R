@@ -26,7 +26,7 @@ write_codebook_syntax <- function(codebookWorkbookFilename,codebookWorkbookFileL
   setwd({{codebookWorkbookFileLocation}})
   codebook_df = openxlsx::read.xlsx({{codebookWorkbookFilename}})
 
-  ### checksums ----
+  ### error checking ----
 
   # push error message if there are blanks in the update_val and update_label columns
   if(length(codebook_df$final_value[codebook_final$final_value == ""]) +
