@@ -188,13 +188,6 @@ write_codebook_workbook <- function(variableWorkbookFilename,variableWorkbookTab
                   avgVal,
                   nVal)
 
-  ### checksums ----
-
-  # push error message if there are blanks in the update_val and update_label columns
-  if(length(codebook_final$final_value[codebook_final$final_value == ""]) +
-     length(codebook_final$final_label[codebook_final$final_label == ""]) > 0)
-    stop("Check final_value and/or final_label; some cells have blanks.")
-
   ### create Excel formulas ----
 
   # FORMULA to flag 1/0 if value has updates:

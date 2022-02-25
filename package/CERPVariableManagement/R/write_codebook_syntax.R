@@ -26,6 +26,13 @@ write_codebook_syntax <- function(codebookWorkbookFilename,codebookWorkbookFileL
   setwd({{codebookWorkbookFileLocation}})
   codebook_df = openxlsx::read.xlsx({{codebookWorkbookFilename}})
 
+  ### checksums ----
+
+  # push error message if there are blanks in the update_val and update_label columns
+  if(length(codebook_df$final_value[codebook_final$final_value == ""]) +
+     length(codebook_df$final_label[codebook_final$final_label == ""]) > 0)
+    stop(paste0("Blanks detected in input file's columns `final_value` and/or `final_label`. Please check input file: ",codebookWorkbookFilename))
+
   # set datasetName
   datasetName = stringr::str_replace({{codebookWorkbookFilename}},"_codebookWorkbook.xlsx","")
 
