@@ -52,7 +52,7 @@ write_codebook_syntax <- function(codebookWorkbookFilename,codebookWorkbookFileL
   # generate the syntax for recoding values
   df_val = codebook_df %>%
     dplyr::filter((.data$final_varName) %in% varWithValueUpdates) %>%
-    #dplyr::filter(keep == 1) %>%
+    dplyr::filter((.data$update_value) == 1) %>%
     dplyr::mutate(prelim_recodeVal = paste0("(",(.data$orig_value),"=",(.data$final_value),")")) %>%
     dplyr::group_by((.data$final_varName)) %>%
     dplyr::select(-`(.data$final_varName)`) %>%
@@ -73,7 +73,7 @@ write_codebook_syntax <- function(codebookWorkbookFilename,codebookWorkbookFileL
   # generate the syntax for recoding labels
   df_label = codebook_df %>%
     dplyr::filter((.data$final_varName) %in% varWithLabelUpdates) %>%
-    #filter(keep == 1) %>%
+    dplyr::filter((.data$update_label) == 1) %>%
     dplyr::mutate(prelim_recodeLabel = paste0((.data$final_value),' \"',(.data$final_label),'\"')) %>%
     dplyr::group_by((.data$final_varName)) %>%
     dplyr::select(-`(.data$final_varName)`) %>%
