@@ -196,9 +196,10 @@ write_codebook_workbook <- function(variableWorkbookFilename,variableWorkbookTab
   # otherwise, no change.
 
   codebook_final$update_value = paste0("=IF(F",seq(2,nrow(codebook_final)+1,1),"=",'"",','"",', #new
-                                       "IF(AND(B",seq(2,nrow(codebook_final)+1,1),"=",'"multiselect",', #new
-    #"=IF(AND(B",seq(2,nrow(codebook_final)+1,1),"=",'"multiselect",',
-                                       "F",seq(2,nrow(codebook_final)+1,1),"=0),1,",
+                                       #"IF(AND(B",seq(2,nrow(codebook_final)+1,1),"=",'"multiselect",', #new
+                                       # "F",seq(2,nrow(codebook_final)+1,1),"=0),1,",
+                                       "IF(B",seq(2,nrow(codebook_final)+1,1),"=",'"multiselect",',"1,", #new
+                                       #"F",seq(2,nrow(codebook_final)+1,1),"=0),1,",
                                        "IF(EXACT(D",seq(2,nrow(codebook_final)+1,1),
                                        ",F",seq(2,nrow(codebook_final)+1 ,1),"),0,1)))")
 
