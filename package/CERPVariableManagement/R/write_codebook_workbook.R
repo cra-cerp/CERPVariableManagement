@@ -66,11 +66,14 @@ write_codebook_workbook <- function(variableWorkbookFilename,variableWorkbookTab
   # read in final version of variable management
   setwd({{variableWorkbookFileLocation}})
   varManagement_df = openxlsx::read.xlsx({{variableWorkbookFilename}},{{variableWorkbookTabName}})
-  varManagement_df = varManagement_df %>%
+  varManagement_df = variableWorkbook_df %>%
     dplyr::group_by((.data$final_varName),
                   (.data$varType)) %>%
     dplyr::tally() %>%
-    dplyr::select(-n)
+    dplyr::rename(final_varName = `(.data$final_varName)`,
+                  varType = `(.data$varType)`) %>%
+    dplyr::select(final_varName,
+                  varType)
 
   ### work with codebook ----
 
