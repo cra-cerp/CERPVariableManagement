@@ -67,6 +67,9 @@ write_codebook_workbook <- function(variableWorkbookFilename,variableWorkbookTab
   setwd({{variableWorkbookFileLocation}})
   varManagement_df = openxlsx::read.xlsx({{variableWorkbookFilename}},{{variableWorkbookTabName}})
   varManagement_df = varManagement_df %>%
+    dplyr::group_by((.data$final_varName),
+                  (.data$varType)) %>%
+    dplyr::tally() %>%
     dplyr::select((.data$final_varName),
                   (.data$varType))
 
