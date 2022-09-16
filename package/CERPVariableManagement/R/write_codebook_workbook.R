@@ -70,8 +70,7 @@ write_codebook_workbook <- function(variableWorkbookFilename,variableWorkbookTab
     dplyr::group_by((.data$final_varName),
                   (.data$varType)) %>%
     dplyr::tally() %>%
-    dplyr::select((.data$final_varName),
-                  (.data$varType))
+    dplyr::select(-n)
 
   ### work with codebook ----
 
